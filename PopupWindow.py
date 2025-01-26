@@ -7,7 +7,7 @@ class PopupWindow:
         self.message = message  # message is now expected to be a list of strings (lines)
         self.width = width
         self.height = height
-        self.font = pygame.font.Font("PressStart2p.ttf", 10)
+        self.font = pygame.font.Font("PressStart2p.ttf", 9)
         self.close_button_rect = pygame.Rect(self.width - 30, 10, 20, 20)
         self.running = True
 

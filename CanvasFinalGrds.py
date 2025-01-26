@@ -31,7 +31,6 @@ def API_call(token, url="https://canvas.eee.uci.edu", requestURL = ""):
     payload = {"access_token" : token}
     # Add params with the full URL
     fullURL = url + requestURL
-    print(fullURL)
     response = requests.get(fullURL, params=payload)
 
     # reuturn the response object
@@ -72,7 +71,10 @@ def finalGradesDict(tkn):
         # Add score to dictionary
         courseScores[courseID] = finalScore
 
-    return courseScores
+    # Get dictionary of currently attending courses
+    attendingDict = attendingClasses(tkn, courseDict)
+
+    return courseScores, attendingDict
 
 
 def matchCourseNameID(tkn):
@@ -106,3 +108,51 @@ def matchCourseNameID(tkn):
             idNameDictionary[courseID] = courseName
 
     return idNameDictionary
+
+import datetime
+
+def attendingClasses(tkn, courseDict):
+    """
+    returns
+    key: course id
+    value: course name
+    """
+    attendingDict = {}
+
+    for course in courseDict:
+        # Get time when Canvas course was last updated
+        lastUpdate = course["updated_at"]
+        
+        # string maniuplation, since it is formatted with 
+        # YEAR-MONTH-DATETTIME
+        timeLst = lastUpdate.split("-")
+        # month will always be located at the 1st index
+        month = timeLst[1]
+
+        # Since a quarter lasts 11 weeks, it takes up 2.75 months.
+        # Get computer date, and courses that have been updated between
+        # 2.75 months are considered to be enrolled
+        current_time = datetime.datetime.now()
+        currentMonth = current_time.month
+
+        monthPassed = currentMonth - int(month)
+        # If monthPassed is negative, add 12 to it
+        if (monthPassed < 0):
+            monthPassed += 12
+
+        # print(month + ": " + str(monthPassed))
+
+        # Add course with monthPassed smaller to 2.75 to attendingClass dictionary
+        if (monthPassed < 2.75):
+            # Get API call in order to get course name
+            courseID = course["course_id"]
+            requestCourse = "/api/v1/courses/" + str(courseID)
+            rsp = API_call(tkn, canvasURL, requestURL=requestCourse)
+
+            # Get JSON string to a dictionary
+            detailsDict = json.loads(rsp.text)
+
+            # Add key and value pairs
+            attendingDict[courseID] = detailsDict["course_code"]
+
+    return attendingDict

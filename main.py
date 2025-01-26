@@ -29,7 +29,7 @@ mood_state="happy"
 courseLst = []
 tkn = Canvas.get_saved_token()
 if (Canvas.check_valid_token(tkn)):
-    scoreDict = CanvasFinalGrds.finalGradesDict(tkn)
+    scoreDict, enrollDict = CanvasFinalGrds.finalGradesDict(tkn)
     # Accumulator to count number of courses with final grds
     totalGrds = 0
     numOfGrds = 0
@@ -39,18 +39,12 @@ if (Canvas.check_valid_token(tkn)):
             numOfGrds += 1
     if (numOfGrds != 0):
         avgScores = int(totalGrds / numOfGrds)
-
-    # Get dictionary of all courses the student has taken before
-    courseDict = CanvasFinalGrds.matchCourseNameID(tkn)
     
     # Traverse through scoreDict to see currently enrolled coursesID
-    for courseID in scoreDict:
-        # Since courseID is key for courseDict, can easily find
-        # course name through key value pairs
-        courseName = courseDict.get(courseID, -1)
-        if courseName != -1:
-            score = scoreDict[courseID]
-            courseLst += [courseName + " " + str(score)]
+    for courseID in enrollDict:
+        # Find course score through key value pairs
+        score = scoreDict.get(courseID, "N/A")
+        courseLst += [enrollDict[courseID] + ": " + str(score)]
 
 
 # Check to see if the user has already logged in 
@@ -196,6 +190,7 @@ while running:
         if canvas_button.pressed:
             if check_valid_token(token):
                 print("Token found. Proceeding with the game...")
+                canvas_button.pressed = False
             else: 
                 print("Connecting to Canvas...")
                 webbrowser.open(api_token_url)
